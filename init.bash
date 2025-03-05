@@ -321,20 +321,32 @@ if [ ! -z "$BASE_DIRECTORY" ]; then
   for i in models input output temp user custom_nodes; do
     in=${COMFYUI_PATH}/$i
     out=${BASE_DIRECTORY}/$i
+    # if folder exists in original location
     if [ -d $in ]; then
-      if [ ! -d $out ]; then
+      # but the same folder (or a symbolic-link/junction) does not exist in base_directory
+      # if [ ! -d $out ]; then
+      if [ -d "$out" ] || ( [ -L "$out" ] && [ -d "$(readlink -f "$out")" ] ); then
+        #move folder from original location to base_directory 
         echo "  ++ Moving $in to $out"
         mv $in $out || error_exit "Failed to move $in to $out"
       else
+        # folder exists in original location but exists in base_directory too, compare and skip
         echo "  -- Both $in (in) and $out (out) exist, skipping move."
         echo "FYI attempting to list files in 'in' that are not in 'out' (empty means no differences):"
         comm -23 <(find $in -type f -printf "%P\n" | sort) <(find $out -type f -printf "%P\n" | sort)
       fi
+    
+    # folder does not exist in original location 
     else
-        if [ ! -d $out ]; then
+        # and does not exist as a direcotry (or symbolic-link/junction) in base_directory, create folder in base_dir
+        # if [ ! -d $out ]; then
+        if [ -d "$out" ] || ( [ -L "$out" ] && [ -d "$(readlink -f "$out")" ] ); then
           echo "  ++ $in not found, $out does not exist: creating destination directory"
           mkdir -p $out || error_exit "Failed to create $out"
+
+        # folder does not exist in original location but exists under base_dir
         else
+          # everything is good, skip
           echo "  -- $in not found, $out exists, skipping"
         fi
     fi
@@ -344,6 +356,7 @@ if [ ! -z "$BASE_DIRECTORY" ]; then
   echo "  == Checking models directory"
   for i in checkpoints loras vae configs clip_vision style_models diffusers vae_approx gligen upscale_models embeddings hypernetworks photomaker classifiers; do
     it=${BASE_DIRECTORY}/models/$i
+    echo "Checking if folder $it exists"
     if [ ! -d $it ]; then
       echo "    ++ Creating $it"
       mkdir -p $it || error_exit "Failed to create $it"
