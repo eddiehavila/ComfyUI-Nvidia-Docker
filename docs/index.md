@@ -1,14 +1,27 @@
 ComfyUI-Nvidia_devel-Docker
 
 Windows10, WSL2, Docker-desktop
-Physical disk formated ext4 with comfyUI-Docker basedir and run, and models folder
+Physical disk formated ext4 containing comfyUI-Docker basedir/ and run/, and models folder
 Pyshical disk mounted on WSL under /mnt/shared
-Physical disk mounted to container via volume mount `-v /mnt/shared/models:/mnt/shared/models:shared`
+Physical disk mounted to container via dcoker volume mount `-v /mnt/shared/models:/mnt/shared/models:shared`
 
 
 Start Docker-desktop. It should automatically start WSL.
 Open a powerShell terminal as Administrator ("run as admin")
-Mount physical disk to WSL: `wsl --mount \\.\PHYSICALDRIVE2`
+Identify DEVICE ID of physical disk: `wmic diskdrive list brief`
+```
+Caption                       DeviceID            Model                         Partitions  Size
+Samsung SSD 970 EVO Plus 1TB  **\\.\PHYSICALDRIVE2**  Samsung SSD 970 EVO Plus 1TB  1           1000202273280
+```
+
+Mount physical disk to WSL: `wsl --mount \\.\PHYSICALDRIVE2` 
+Ignore error?:
+```
+Catastrophic failure
+Error code: Wsl/Service/DetachDisk/E_UNEXPECTED
+```
+
+
 ENter WSL: `wsl`
 If this is the first time mounting the disk, get the disk UUID and add to /etc/fstab. Note its `defaults,shared` so docker can access the double/nested mounted directory
 ```
