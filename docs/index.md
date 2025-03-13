@@ -61,8 +61,40 @@ docker run --rm -it --runtime nvidia --gpus all \
 
 
 
-
-
+user@localhost:/mnt/shared/comfyui-docker$ tree /mnt/shared/ -L 3
+/mnt/shared/
+├── comfyui-docker
+│   ├── basedir
+│   │   ├── custom_nodes
+│   │   ├── input
+│   │   ├── models -> /mnt/shared/models/
+│   │   ├── output
+│   │   └── user
+│   ├── run
+│   │   ├── ComfyUI
+│   │   ├── HF
+│   │   ├── sageattention
+│   │   ├── triton
+│   │   ├── user_script.bash
+│   │   └── venv
+│   ├── shell.sh
+│   └── start.sh
+├── lost+found
+└── models
+    ├── Codeformer
+    │   ├── codeformer-v0.1.0.pth
+    │   └── detection_Resnet50_Final.pth
+    ├── CogVideo
+    │   ├── CogVideoX-5b-1.5
+    │   ├── CogVideoX-5b-I2V
+    │   └── CogVideoX-5b-Tora
+    ├── Diffusers
+    │   ├── hunyuan3d-delight-v2-0
+    │   └── hunyuan3d-paint-v2-0
+    ├── GFPGAN
+    ├── LDSR
+    ├── LLM
+    [..........]
 
 
 
