@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ${NV_CUDNN_PACKAGE_DEV} \
     && apt-mark hold ${NV_CUDNN_PACKAGE_NAME}
 
-
 ARG BASE_DOCKER_FROM=nvidia/cuda:12.8.0-devel-ubuntu24.04
 ##### Base
 
