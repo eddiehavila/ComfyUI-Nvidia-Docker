@@ -1,6 +1,6 @@
 <h1>ComfyUI (NVIDIA) Docker</h1>
 
-- runs in [containers](https://blg.gkr.one/20240501-docker101/) for enhanced host OS separation
+- runs in [containers](https://www.gkr.one/blg-20240501-docker101) for enhanced host OS separation
   - work with `docker` (and `compose`) or `podman` using `Windows Subsystem for Linux 2` (WSL2) on Windows (using a Linux Guest Virtual Machine on your Windows host)
 - can run multiple setups with an independent `run` folder (for virtual environment management and source code) shared `basedir` folder (for user files, input, output, custom nodes, models, etc.)
 - drops privileges to a regular user/preserves user permissions with custom UID/GID mapping (the running user's `id -u` and `id -g` as specified on the command line)
@@ -19,12 +19,21 @@
   - including [Unraid](https://unraid.net) compatible images
 - open-source: build it yourself using the corresponding `Dockerfile` present in the directory of the same name and review the `init.bash` (i.e. the setup logic)
 
+<h2>About "latest" tag</h2>
+
+`latest` currently points to the `ubuntu24_cuda12.5.1` tag.
+The next release will replace `latest` with `ubuntu24_cuda12.6.3`.
+
+When this happens, some installed `custom_nodes` will need to be fixed (`Try Fix`) for `Import Failed` nodes in `ComfyUI-Manager`.
+This manual step should only be needed once per the `latest` tag update to a different Ubuntu+CUDA version.
+
+To avoid `latest` changing your container's Ubuntu or CUDA version, manually select the docker image tag from the list of available tags.
 
 <h2>Quick Start</h2>
 
 **Windows users, see the "Windows: WSL2 and podman" section**
 
-Make sure you have the NVIDIA Container Toolkit installed. More details: https://blg.gkr.one/20240404-u24_nvidia_docker_podman/
+Make sure you have the NVIDIA Container Toolkit installed. More details: https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman
 
 To run the container on an NVIDIA GPU, mount the specified directory, expose only to `localhost` on port `8188` (remove `127.0.0.1` to expose to your subnet, and change the port by altering the `-p local:container` port mapping), pass the calling user's UID and GID to the container, and select the `SECURITY_LEVEL`:
 
@@ -54,17 +63,18 @@ The container size (usually over 4GB) contains the required components on an Ubu
 Multiple images are available. Each image's name contains a tag reflecting its core components. For example, `ubuntu24_cuda12.5.1` is based on Ubuntu 24.04 with CUDA 12.5.1. Depending on the version of the Nvidia drivers installed, the Docker container runtime will only support a certain version of CUDA. For example, Driver 550 supports up to CUDA 12.4 and will not be able to run the CUDA 12.4.1 or 12.5.1 versions. The recently released 570 driver supports up to CUDA 12.8 and RTX 50xx GPUs.
 Use the `nvidia-smi` command on your system to obtain the `CUDA Version:` entry. It will show you the maximum CUDA version supported by your driver. If the printout shows `CUDA Version: 12.6`, your driver will support up to the `cuda12.5.1` version of the container (below the maximum CUDA version supported by the driver) but not `cuda12.8`. With this information, check for a usable `tag`  in the table below.
 
-The `latest` tag will always point to the most up-to-date build (i.e., the most recent OS+CUDA). 
+The `latest` tag will point to a most up-to-date build (i.e., the most recent OS+CUDA). 
 If this version is incompatible with your container runtime, please see the list of alternative builds.
 
 | tag | aka | note |
 | --- | --- | --- |
 | ubuntu22_cuda12.3.2-latest | | | 
 | ubuntu22_cuda12.4.1-latest | | | 
-| ubuntu24_cuda12.5.1-latest | latest | | 
+| ubuntu24_cuda12.5.1-latest | `latest` | `latest` up to `20250320` release |
+| ubuntu24_cuda12.6.3-latest | | next release's `latest`|
 | ubuntu24_cuda12.8-latest | | RTX 50xx beta |
 
-For more details on driver capabilities and how to update those, please see [Setting up NVIDIA docker & podman (Ubuntu 24.04)](https://blg.gkr.one/20240404-u24_nvidia_docker_podman/).
+For more details on driver capabilities and how to update those, please see [Setting up NVIDIA docker & podman (Ubuntu 24.04)](https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman).
 
 
 During its first run, the container will download ComfyUI from `git` (into the `run/ComfyUI` folder), create a Python virtual environment (in `run/venv`) for all the Python packages needed by the tool, and install [ComfyUI Manager](https://github.com/ltdrdata/ComfyUI-Manager) into ComfyUI's `custom_nodes` directory. 
@@ -130,14 +140,14 @@ This is done to allow end users to have local directory structures for all the s
 To request a different UID/GID at run time, use the `WANTED_UID` and `WANTED_GID` environment variables when calling the container.
 
 Note: 
-- for details on how to set up a Docker to support an NVIDIA GPU on an Ubuntu 24.04 system, please see [Setting up NVIDIA docker & podman (Ubuntu 24.04)](https://blg.gkr.one/20240404-u24_nvidia_docker_podman/)
+- for details on how to set up a Docker to support an NVIDIA GPU on an Ubuntu 24.04 system, please see [Setting up NVIDIA docker & podman (Ubuntu 24.04)](https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman)
 - If you are new to ComfyUI, see [OpenArt's ComfyUI Academy](https://openart.ai/workflows/academy)
 - Some ComfyUI examples:
   - [ComfyUI_examples](https://comfyanonymous.github.io/ComfyUI_examples/)
   - [ComfyUI FLUX examples](https://comfyanonymous.github.io/ComfyUI_examples/flux/)
 - Some additional reads:
-  - [FLUX.1[dev] with ComfyUI and Stability Matrix](https://blg.gkr.one/20240810-flux1dev/)
-  - [FLUX.1 LoRA training](https://blg.gkr.one/20240818-flux_lora_training/)
+  - [FLUX.1[dev] with ComfyUI and Stability Matrix](https://www.gkr.one/blg-20240810-flux1dev)
+  - [FLUX.1 LoRA training](https://www.gkr.one/blg-20240818-flux-lora-training)
 
 # 2. Running the container
 
@@ -178,6 +188,7 @@ When starting, the container image executes the `init.bash` script that performs
   - **Make sure to use the `COMFY_CMDLINE_EXTRA` environment variable to pass the `--basedir` option to the tool if running the tool from within this script**
 - Run the ComfyUI WebUI. For the exact command run, please see the last line of `init.bash`
 
+If the `FORCE_CHOWN` environment variable is set to any non empty value (ex: "yes"), the script will force change directory ownership as the `comfy` user during script startup (might be slow).
 
 ## 2.1. docker run
 
@@ -190,7 +201,7 @@ docker run --rm -it --runtime nvidia --gpus all -v `pwd`/run:/comfy/mnt -v `pwd`
 
 ## 2.2. podman
 
-It is also possible to run the tool using `podman`. Before doing so, ensure the Container Device Interface (CDI) is properly set for your driver. Please see https://blg.gkr.one/20240404-u24_nvidia_docker_podman/ for instructions.
+It is also possible to run the tool using `podman`. Before doing so, ensure the Container Device Interface (CDI) is properly set for your driver. Please see https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman for instructions.
 To run the container on an NVIDIA GPU, mount the specified directory, expose only to `localhost` on port `8188` (remove `127.0.0.1` to expose to your subnet, and change the port by altering the `-p local:container` port mapping), pass the calling user's UID and GID to the container, provide a `BASE_DIRECTORY` and select the `SECURITY_LEVEL`:
 
 ```bash
@@ -239,7 +250,7 @@ Start it with `docker compose up` (with `-detached` to run the container in the 
 
 Please see [docker compose up](https://docs.docker.com/reference/cli/docker/compose/up/) reference manual for additional details.
 
-For users interested in adding it to a [Dockge](https://dockge.kuma.pet/) (a self-hosted Docker Compose stacks management tool ) stack,  please see my [Dockge blog post](https://blg.gkr.one/20240706-dockge/) where we discuss directory and bind mounts (models take a lot of space).
+For users interested in adding it to a [Dockge](https://dockge.kuma.pet/) (a self-hosted Docker Compose stacks management tool ) stack,  please see my [Dockge blog post](https://www.gkr.one/blg-20240706-dockge) where we discuss directory and bind mounts (models take a lot of space).
 
 ## 2.4. First time use
 
@@ -483,6 +494,17 @@ When following the rules defined at https://github.com/ltdrdata/ComfyUI-Manager?
 You will prefer ' weak ' if you manually install or alter custom nodes.
 **WARNING: Using `normal-` will prevent access to the WebUI.**
 
+### 5.3.5. FORCE_CHOWN
+
+The `FORCE_CHOWN` environment variable is used to force change directory ownership as the `comfy` user during script startup (this process might be slow).
+
+This option was added to support users who mount the `run` and `basedir` folders onto other hosts which might not respect the UID/GID of the `comfy` user.
+
+`FORCE_CHOWN` must be set with a non empty value (for example "yes: `-e FORCE_CHOWN=yes`) to be enabled.
+
+When set, it will "force chown" every sub-folder in the `run` and `basedir` folders when it first attempt to access them before verifying they are owned by the proper user.
+
+
 ## 5.4. ComfyUI Manager & Security levels
 
 [ComfyUI Manager](https://github.com/ltdrdata/ComfyUI-Manager/) is installed and available in the container.
@@ -527,11 +549,14 @@ See [extras/FAQ.md] for additional FAQ topics, among which:
 
 ### 5.6.1. Windows: WSL2 and podman
 
+**Note:** per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26, you must use `-v /usr/lib/wsl:/usr/lib/wsl -e LD_LIBRARY_PATH=/usr/lib/wsl/lib` to passthrough the nvidia drivers related to opengl.
+
+
 The container can be used on Windows using "Windows Subsystem for Linux 2" (WSL2). 
 For additional details on WSL, please read https://learn.microsoft.com/en-us/windows/wsl/about
 For additional details on podman, please read https://docs.podman.io/latest/getting_started/
 
-WSL2 is a Linux guest Virtual Machine on a Windows host (for a slightly longer understanding of what this means, please see the first section of https://blg.gkr.one/20240501-docker101/).
+WSL2 is a Linux guest Virtual Machine on a Windows host (for a slightly longer understanding of what this means, please see the first section of https://www.gkr.one/blg-20240501-docker101).
 The started container is Linux based (Ubuntu Linux) that will perform a full installation of ComfyUI from sources.
 Some experience with the Linux and Python command line interface is relevant for any modifictions of the virtual environment of container post container start.
 
@@ -542,7 +567,7 @@ First, follow the steps in Section 2 ("Getting Started with CUDA on WSL 2") of h
 
 Once you have your Ubuntu Virtual Machine installed, start its terminal and follow the instructions to create your new user account (in the rest of this section we will use `USER` to refer to it, adapt as needed) and set a password (which you will use for `sudo` commands). Check your UID and GID using `id`; by default those should be `1000` and `1000`.
 
-Then, from the terminal, run the following commands (for further details on some of the steps below, see https://blg.gkr.one/20240404-u24_nvidia_docker_podman/ ):
+Then, from the terminal, run the following commands (for further details on some of the steps below, see https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman):
 
 ```bash
 # Update the package list & Upgrade the already installed packages
@@ -587,7 +612,7 @@ mkdir run basedir
 # - the ComfyUI-Manager security levels will be set to "normal"
 # - we will expose the WebUI to http://127.0.0.1:8188
 # please see other sections of this README.md for options
-podman run --rm -it --userns=keep-id --device nvidia.com/gpu=all -v `pwd`/run:/comfy/mnt -v `pwd`/basedir:/basedir -e WANTED_UID=`id -u` -e WANTED_GID=`id -g` -e BASE_DIRECTORY=/basedir -e SECURITY_LEVEL=normal -p 127.0.0.1:8188:8188 --name comfyui-nvidia docker.io/mmartial/comfyui-nvidia-docker:latest
+podman run --rm -it --userns=keep-id --device nvidia.com/gpu=all -v `pwd`/run:/comfy/mnt -v `pwd`/basedir:/basedir -v /usr/lib/wsl:/usr/lib/wsl -e LD_LIBRARY_PATH=/usr/lib/wsl/lib-e WANTED_UID=`id -u` -e WANTED_GID=`id -g` -e BASE_DIRECTORY=/basedir -e SECURITY_LEVEL=normal -p 127.0.0.1:8188:8188 --name comfyui-nvidia docker.io/mmartial/comfyui-nvidia-docker:latest
 ```
 
 Once started, go to http://127.0.0.1:8188 and enjoy your first workflow (the bottle example). With this workflow, ComfyUI-Manager should offer to download the model. but since your browser runs on the Windows side, we will need to move the downloaded file to the Ubuntu VM. In another `Ubuntu` terminal, run (adapt `USER`): `mv /mnt/c/Users/USER/Downloads/v1-5-pruned-emaonly-fp16.safetensors basedir/models/checkpoints/`. You will see that `basedir` and `run` are owned by your `USER`.
@@ -657,6 +682,7 @@ Make sure to change file ownership to the user with the `WANTED_UID` and `WANTED
 
 # 7. Changelog
 
+- 20250320: Made CUDA 12.6.3 image which will be the new `latest` as of the next release + Added checks for directory ownership + added `FORCE_CHOWN` + added libEGL/Vulkan ICD loaders and libraries (per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26) including extension to Windows usage section related to this addition
 - 20250227: Simplified user switching logic using the `comfytoo` user as the default entry point user that will set up the `comfy` user
 - 20250216: Fix issue with empty `BASE_DIRECTORY` variable
 - 20250202: Added `BASE_DIRECTORY` variable
