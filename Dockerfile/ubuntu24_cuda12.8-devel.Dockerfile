@@ -4,14 +4,14 @@ FROM nvidia/cuda:12.8.0-devel-ubuntu24.04
 ENV NV_CUDNN_VERSION=9.7.0.66-1
 ENV NV_CUDNN_PACKAGE_NAME="libcudnn9-cuda-12"
 ENV NV_CUDNN_PACKAGE="libcudnn9-cuda-12=${NV_CUDNN_VERSION}"
-# add for nvcc
+
+# add for nvcc (Nvidia compiler to compile stuff like triton and sageAttention)
 ENV NV_CUDNN_PACKAGE_DEV libcudnn9-dev-cuda-12=${NV_CUDNN_VERSION}
 
 LABEL com.nvidia.cudnn.version="${NV_CUDNN_VERSION}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ${NV_CUDNN_PACKAGE} \
-    ${NV_CUDNN_PACKAGE_DEV} \
     && apt-mark hold ${NV_CUDNN_PACKAGE_NAME}
 
 ARG BASE_DOCKER_FROM=nvidia/cuda:12.8.0-devel-ubuntu24.04
@@ -49,12 +49,19 @@ RUN apt-get update -y --fix-missing \
     python3-venv \
     git \
     sudo \
-    # Adding libGL (used by a few common nodes)
-    libgl1 \
     libglib2.0-0 \
-    # Adding FFMPEG (for video generation workflow)
-    ffmpeg \
   && apt-get clean
+
+# Add libEGL ICD loaders and libraries + Vulkan ICD loaders and libraries
+# Per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26
+RUN apt install -y libglvnd0 libglvnd-dev libegl1-mesa-dev libvulkan1 libvulkan-dev ffmpeg \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p /usr/share/glvnd/egl_vendor.d \
+  && echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' > /usr/share/glvnd/egl_vendor.d/10_nvidia.json \
+  && mkdir -p /usr/share/vulkan/icd.d \
+  && echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libGLX_nvidia.so.0","api_version":"1.3"}}' > /usr/share/vulkan/icd.d/nvidia_icd.json
+ENV MESA_D3D12_DEFAULT_ADAPTER_NAME="NVIDIA"
 
 ENV BUILD_FILE="/etc/image_base.txt"
 ARG BASE_DOCKER_FROM
@@ -89,6 +96,7 @@ ENV COMFYUSER_DIR="/comfy"
 RUN mkdir -p ${COMFYUSER_DIR}
 RUN it="/etc/comfyuser_dir"; echo ${COMFYUSER_DIR} > $it && chmod 555 $it
 
+ENV NVIDIA_DRIVER_CAPABILITIES="all"
 ENV NVIDIA_VISIBLE_DEVICES=all
 
 EXPOSE 8188

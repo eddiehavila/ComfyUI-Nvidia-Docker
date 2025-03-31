@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 # Install triton & SageAttention for speed optimizations 
 echo ""
 echo ""
@@ -17,10 +20,10 @@ source /comfy/mnt/venv/bin/activate
 
 # common missing packages when running an exisitng custom_nodes/ on a new venv's 
 # should had been taken care for by "ComfyUI-Manager/cm-cli.py fix all" but its not working
-python3 -m pip install --upgrade --pre segment-anything scikit-image piexif opencv-python3-headless scipy numpy dill \
+/comfy/mnt/venv/bin/python3 -m pip install --upgrade --pre segment-anything scikit-image piexif opencv-python3-headless scipy numpy dill \
                       matplotlib accelerate diffusers transformers jax \
                       timm segment_anything addict yapf fairscale pycocoevalcap opencv-python3 qrcode \
-                      pytorch_lightning pydantic omegaconf boto3 ultralytics numpy
+                      pytorch_lightning pydantic omegaconf boto3 ultralytics numpy watchdog
 
 # # trying to fix any broken nodes
 # echo "trying to fix any broken nodes via /basedir/custom_nodes/ComfyUI-Manager/cm-cli.py fix all"
@@ -88,6 +91,10 @@ else
   echo "sageattention is installed with version $sageattention_version which is 2.1 or above. No need to compile."
 fi
 
+echo "Adding '--use-sage-attention' to comfy command line"
+echo "${COMFY_CMDLINE_EXTRA}"
+export COMFY_CMDLINE_EXTRA="${COMFY_CMDLINE_EXTRA} --use-sage-attention"
+echo "${COMFY_CMDLINE_EXTRA}"
 
 echo "##########################################################################"
 echo ""
@@ -97,5 +104,31 @@ echo ""
 echo ""
 
 
+
+echo "== Adding system package"
+DEBIAN_FRONTEND=noninteractive sudo apt update
+DEBIAN_FRONTEND=noninteractive sudo apt install -y nvtop
+
+echo "== Adding python package"
+source /comfy/mnt/venv/bin/activate
+pip3 install pipx
+echo "== Adding nvitop"
+# nvitop will be installed in the user's .local/bin directory which will be removed when the container is updated
+pipx install nvitop
+
+# extend the path to include the installation directory
+export PATH=/comfy/.local/bin:${PATH}
+# when starting a new docker exec, will still need to be run as ~/.local/bin/nvitop
+# but will be in the PATH for commands run from within this script
+
+echo "== Override ComfyUI launch command with: python3 ./main.py --listen 0.0.0.0 --disable-auto-launch --fast ${COMFY_CMDLINE_EXTRA}"
+# Make sure to have 1) activated the venv before running this command 
+# 2) use the COMFY_CMDLINE_EXTRA environment variable to pass additional command-line arguments set during the init script
+cd /comfy/mnt/ComfyUI
+python3 ./main.py --listen 0.0.0.0 --disable-auto-launch --fast ${COMFY_CMDLINE_EXTRA}
+
+echo "== To prevent the regular Comfy command from starting, we 'exit 1'"
+echo "   If we had not overridden it, we could simply end with an ok exit: 'exit 0'" 
+exit 1
 
 # exit 0
