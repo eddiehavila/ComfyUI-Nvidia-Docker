@@ -23,7 +23,7 @@ source /comfy/mnt/venv/bin/activate
 /comfy/mnt/venv/bin/python3 -m pip install --upgrade --pre segment-anything scikit-image piexif opencv-python3-headless scipy numpy dill \
                       matplotlib accelerate diffusers transformers jax \
                       timm segment_anything addict yapf fairscale pycocoevalcap opencv-python3 qrcode \
-                      pytorch_lightning pydantic omegaconf boto3 ultralytics numpy watchdog
+                      pytorch_lightning pydantic omegaconf boto3 ultralytics numpy watchdog pyOpenSSL
 
 # # trying to fix any broken nodes
 # echo "trying to fix any broken nodes via /basedir/custom_nodes/ComfyUI-Manager/cm-cli.py fix all"
@@ -91,10 +91,10 @@ else
   echo "sageattention is installed with version $sageattention_version which is 2.1 or above. No need to compile."
 fi
 
-echo "Adding '--use-sage-attention' to comfy command line"
-echo "${COMFY_CMDLINE_EXTRA}"
-export COMFY_CMDLINE_EXTRA="${COMFY_CMDLINE_EXTRA} --use-sage-attention"
-echo "${COMFY_CMDLINE_EXTRA}"
+# echo "Adding '--use-sage-attention' to comfy command line"
+# echo "${COMFY_CMDLINE_EXTRA}"
+# export COMFY_CMDLINE_EXTRA="${COMFY_CMDLINE_EXTRA} --use-sage-attention"
+# echo "${COMFY_CMDLINE_EXTRA}"
 
 echo "##########################################################################"
 echo ""

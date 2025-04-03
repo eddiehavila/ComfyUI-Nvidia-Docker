@@ -1,5 +1,6 @@
 
-docker run --rm -it --runtime nvidia --gpus all \
+# docker run --rm -it --runtime nvidia --gpus all \
+docker run -it --runtime nvidia --gpus all \
 -v `pwd`/run:/comfy/mnt \
 -v `pwd`/basedir:/basedir \
 -v /mnt/shared/models:/mnt/shared/models:shared \
